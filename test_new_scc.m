@@ -6,7 +6,7 @@ addpath('mexsource\');
 
 nReps=20;
 DELAYbinwidth=50e-6;
-nBoots=1e3;
+nBoots=.3e3;
 
 [stim, fs]=audioread('dan_sent1.wav');
 stimDur=length(stim)/fs;

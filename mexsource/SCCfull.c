@@ -7,20 +7,19 @@
 *
 * Computes Shuffled Cross Correlogram from two Spike Matrices
 * 
-* Call:  [intsMEX,TOTALints] = SCCfull(SpikeMAT1,NUMspikes1,TOTALspikes1,SpikeMAT2,NUMspikes2,TOTALspikes2);
+* Call:  [SCC,delay] = SCCfull(SpikeMAT1,NUMspikes1,TOTALspikes1,SpikeMAT2,NUMspikes2,TOTALspikes2);
 * 		SpikesMAT1(2): (Kmax x NUMreps) matrix with spike trains (NaNs fill end of each column for shorter spike trains)
 *		NUMspikes1(2): (1x NUMreps) vector with number of spikes in each train
-*		TOTALspikes1(2): needed to allocate intsMEX
+*		TOTALspikes1(2): needed to allocate SCC
 *
-*		intsMEX: vector with all-order intervals
-*		TOTALints: number of actual ints (non NaN)
+*		SCC: Shuffled Cross Correlogram.
+*		delay: delay corresponding to SCC. 
 *		
 *********************************************************************/
 
 #include "mex.h"
 
-//SCCfull(SpikeMAT1,NUMspikes1,NUMspikeREPS1,Kmax1,SpikeMAT2,NUMspikes2,NUMspikeREPS2,Kmax2,intsMEX,TOTALints);
-void SCCfull(double *SpikeMAT1, double *NUMspikes1, long NUMspikeREPS1, long Kmax1, double *SpikeMAT2, double *NUMspikes2, long NUMspikeREPS2, long Kmax2, double *DelayBinWidth, long nzmax, double *ints, double TOTALints[])
+void SCCfull(double *SpikeMAT1, double *NUMspikes1, long NUMspikeREPS1, long Kmax1, double *SpikeMAT2, double *NUMspikes2, long NUMspikeREPS2, long Kmax2, double *DelayBinWidth, long nzmax, double *ints)
 {
    long REPindREF,SpikeIND,REPindCOMP,COMPSpikeIND,intIND=0;
    
@@ -35,19 +34,18 @@ void SCCfull(double *SpikeMAT1, double *NUMspikes1, long NUMspikeREPS1, long Kma
 					   ints[intIND]+=1;
 					}
       }  }	}  }
-	TOTALints[0]=intIND;
 }
 
 
 // the gateway function
-// [intsMEX,TOTALints] = SCCfull(SpikeMAT1,NUMspikes1,TOTALspikes1,SpikeMAT2,NUMspikes2,TOTALspikes2);
+// [SCC,delay] = SCCfull(SpikeMAT1,NUMspikes1,TOTALspikes1,SpikeMAT2,NUMspikes2,TOTALspikes2);
 void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
-   double   *SpikeMAT1,*intsMEX,*NUMspikes1, *DelayMax, *DelayBinWidth; // input-output arrays
+   double   *SpikeMAT1,*SCC,*NUMspikes1, *DelayMax, *DelayBinWidth; // input-output arrays
    double   *SpikeMAT2,*NUMspikes2; // input-output arrays
 	long     TOTALspikes1,TOTALspikes2; // input scalar
-   double   *TOTALints;  // output scalar
+   double   *delay;  // output scalar
    long     NUMspikeREPS1,Kmax1;
    long     NUMspikeREPS2,Kmax2, nzmax;
    
@@ -111,19 +109,23 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgTxt("Input DelayBinWidth must be a scalar.");
    }
    
-   /*  set the output pointer to the output matrix intsMEX */	
+   /*  set the output pointer to the output matrix SCC */	
 	nzmax = floor(DelayMax[0]/DelayBinWidth[0]);
 	plhs[0] = mxCreateDoubleMatrix(1,2*nzmax+1, mxREAL);
-   /*  create a C pointer to a copy of the output matrix intsMEX */
-   intsMEX = mxGetPr(plhs[0]);
+   /*  create a C pointer to a copy of the output matrix SCC */
+   SCC = mxGetPr(plhs[0]);
   
-   /*  set the output pointer to the output scalar TOTALints */
-   plhs[1] = mxCreateDoubleMatrix(1,1, mxREAL);
-   /*  create a C pointer to a copy of the output variable TOALints */
-   TOTALints = mxGetPr(plhs[1]);
+   /*  set the output pointer to the output scalar delay */
+   plhs[1] = mxCreateDoubleMatrix(1,2*nzmax+1, mxREAL);
+   /*  create a C pointer to a copy of the output variable delay */
+   delay = mxGetPr(plhs[1]);
    
-
+   for (i=0; i<=2*nzmax; i++)
+   {
+	   delay[i]=-DelayMax[0]+DelayBinWidth[0]*i;
+   }
+   
    /*  call the C subroutine */
-   SCCfull(SpikeMAT1,NUMspikes1,NUMspikeREPS1,Kmax1,SpikeMAT2,NUMspikes2,NUMspikeREPS2,Kmax2,DelayBinWidth, nzmax,intsMEX,TOTALints);
+   SCCfull(SpikeMAT1,NUMspikes1,NUMspikeREPS1,Kmax1,SpikeMAT2,NUMspikes2,NUMspikeREPS2,Kmax2,DelayBinWidth, nzmax,SCC);
 	
 	}

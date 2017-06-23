@@ -6,20 +6,20 @@
 *
 * Computes Shuffled Auto Correlogram for positive delays from a Spike Matrix (symmetric around 0 delay)
 * 
-* Call:  [intsMEX,TOTALints] = InnerSACmex(SpikeMAT1,NUMspikes,TOTALspikes);
+* Call:  [SAC,delay] = InnerSACmex(SpikeMAT1,NUMspikes,TOTALspikes);
 * 		SpikesMAT1: (Kmax x NUMreps) matrix with spike trains (NaNs fill end of each column for shorter spike trains)
 *		NUMspikes: (1x NUMreps) vector with number of spikes in each train
-*		TOTALspikes: needed to allocate intsMEX
+*		TOTALspikes: needed to allocate SAC
 *
-*		intsMEX: vector with all-order intervals
-*		TOTALints: number of actual ints (non NaN)
+*		SAC: Shuffled Auto Correlogram (for only positive delays)
+*		delay: delay corresponding to SAC. 
 *		
 *********************************************************************/
 
 #include "mex.h"
 
-//InnerShufAutoCorrMEX(SpikeMAT1,NUMspikes,NUMspikeREPS,Kmax,ints,TOTALints);
-void SAChalf(double *SpikeMAT1, double *NUMspikes, long NUMspikeREPS, long Kmax, double *DelayBinWidth, long nzmax, double *ints, double TOTALints[])
+//InnerShufAutoCorrMEX(SpikeMAT1,NUMspikes,NUMspikeREPS,Kmax,ints,delay);
+void SAChalf(double *SpikeMAT1, double *NUMspikes, long NUMspikeREPS, long Kmax, double *DelayBinWidth, long nzmax, double *ints)
 {
    long REPindREF,SpikeIND,REPindCOMP,COMPSpikeIND,intIND=0;
    
@@ -33,18 +33,17 @@ void SAChalf(double *SpikeMAT1, double *NUMspikes, long NUMspikeREPS, long Kmax,
 					   ints[intIND]+=1;
 						}
       }  }  }	}  }
-	TOTALints[0]=intIND;
 }
 
 
 // the gateway function
-// [intsMEX,TOTALints] = SAChalf(SpikeMAT1,NUMspikes,TOTALspikes);
+// [SAC,delay] = SAChalf(SpikeMAT1,NUMspikes,TOTALspikes);
 void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
-   double   *SpikeMAT1,*intsMEX,*NUMspikes, *DelayMax, *DelayBinWidth; // input-output arrays
+   double   *SpikeMAT1,*SAC,*NUMspikes, *DelayMax, *DelayBinWidth; // input-output arrays
 	long     TOTALspikes; // input scalar
-   double   *TOTALints;  // output scalar
+   double   *delay;  // output scalar
    long     NUMspikeREPS,Kmax, nzmax;
 
 	int      i;
@@ -98,20 +97,24 @@ void mexFunction( int nlhs, mxArray *plhs[],
    }
    
    
-   /*  set the output pointer to the output matrix intsMEX */
+   /*  set the output pointer to the output matrix SAC */
     nzmax = 1+floor(DelayMax[0]/DelayBinWidth[0]);
 	//printf("%d is the size \n", nzmax);
 	plhs[0] = mxCreateDoubleMatrix(1,nzmax, mxREAL);
-   /*  create a C pointer to a copy of the output matrix intsMEX */
-   intsMEX = mxGetPr(plhs[0]);
+   /*  create a C pointer to a copy of the output matrix SAC */
+   SAC = mxGetPr(plhs[0]);
   
-   /*  set the output pointer to the output scalar TOTALints */
-   plhs[1] = mxCreateDoubleMatrix(1,1, mxREAL);
+   /*  set the output pointer to the output scalar delay */
+   plhs[1] = mxCreateDoubleMatrix(1,nzmax, mxREAL);
    /*  create a C pointer to a copy of the output variable TOALints */
-   TOTALints = mxGetPr(plhs[1]);
-   
+   delay = mxGetPr(plhs[1]);
+    
+	for (i=0; i<=nzmax; i++)
+   {
+	   delay[i]=DelayBinWidth[0]*i;
+   }
 
    /*  call the C subroutine */
-   SAChalf(SpikeMAT1,NUMspikes,NUMspikeREPS,Kmax,DelayBinWidth, nzmax, intsMEX,TOTALints);
+   SAChalf(SpikeMAT1,NUMspikes,NUMspikeREPS,Kmax,DelayBinWidth, nzmax, SAC);
 	
 	}
