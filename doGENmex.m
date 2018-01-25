@@ -13,7 +13,7 @@ if (exist('debug','var') ~=1)
    debug = 0;
 end
 
-orig_dir = cd([root_dir '\mexsource']);
+orig_dir = cd([root_dir filesep 'mexsource']);
 mexdir    = [root_dir];
 
 if (iscell(fnames))

@@ -9,7 +9,7 @@ clear;
 close all;
 clc;
 
-addpath('mexsource\');
+addpath(['mexsource' filesep]);
 
 
 %%
@@ -30,11 +30,9 @@ noiseType=0;
 implnt=0;
 DELAYbinwidth=50e-6;
 
-[stim, fs]=audioread('dan_sent1.wav');
+[stim, fs]=audioread(['Stimuli' filesep 'stimSetStationary' filesep 'Stim_S_N.wav']);
 stimDur=length(stim)/fs;
 Duration=.8*stimDur;
-
-
 
 corr_ACFs=nan(length(all_SRtype), length(all_nReps));
 
@@ -66,8 +64,8 @@ for srVar=1:length(all_SRtype)
         %%
         if rem(ANmodel_Fs_Hz*DELAYbinwidth,1)==0
             ACF_meanrate_rs=resample(ACF_meanrate, 1, ANmodel_Fs_Hz*DELAYbinwidth);
-            zeroInd=(length(ACF_meanrate_rs)+1)/2;
-            indHalf=(length(NSACdelays)-1)/2;
+            zeroInd=round((length(ACF_meanrate_rs)+1)/2);
+            indHalf=round((length(NSACdelays)-1)/2);
             ACF_meanrate_rs=ACF_meanrate_rs(zeroInd-indHalf:zeroInd+indHalf);
             corr_ACFs(srVar, nRepVar)=corr(ACF_meanrate_rs', NSAC');
             %%
