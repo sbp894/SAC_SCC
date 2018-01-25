@@ -17,6 +17,12 @@ if ~isdir(OUTDir)
    mkdir(OUTDir); 
 end
 
+OUTDirIter=[OUTDir 'singIter' filesep];
+if ~isdir(OUTDirIter)
+    mkdir(OUTDirIter);
+end
+
+
 %%
 lw2=1.7;
 lw1=1.2;
@@ -124,7 +130,7 @@ for condVar=1:length(conditionStruct)
     [uR_CCF, delay_meanrate]=xcorr(meanrate_unad_minus, meanrate_unad_plus, 'unbiased');
     delay_meanrate=delay_meanrate/fsStim;
     uR_sumcor=resample((uR_ACF+uR_CCF)/2, params.Fs_PSD, fsStim);
-    delay_meanrate=linspace(min(delay_meanrate), max(delay_meanrate), length(uR_sumcor));sub -l nodes=1:ppn=20,walltime=00:01:00 myjob.sub
+    delay_meanrate=linspace(min(delay_meanrate), max(delay_meanrate), length(uR_sumcor));
     validInds= abs(delay_meanrate)<SCCdur;
     delay_meanrate=delay_meanrate(validInds);
     uR_sumcor=uR_sumcor(validInds);
@@ -149,7 +155,8 @@ for condVar=1:length(conditionStruct)
     uR_PSDenv=abs(uR_FFTadj);
     conditionStruct(condVar).uR_PSDenv=uR_PSDenv;
     conditionStruct(condVar).uR_freqVEC=uR_freqVEC;
-    fprintf('EndXX - %d\n', condVar);
+    
+    save([OUTDirIter 'conditionData_iter_' num2str(condVar) '.mat'], 'uR_PSDenv', 'uR_PSDenv', 'N_freqVEC', 'N_PSDenv');
 end
 
 save([OUTDir 'conditionData.mat'], 'conditionStruct', 'stimFileNames', 'AN', 'params');
