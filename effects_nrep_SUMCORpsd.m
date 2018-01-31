@@ -1,4 +1,8 @@
 %%
+% -----------------------Results-------------------------
+% 64 ms is pretty good in most cases for 25 repititions. SUMCOR PSDs
+% estimated from spikes and meanrates closely match. 
+% 
 % Created by SP
 % Testing
 % Sumcor PSD convergence for L/M/H SR fibers (effect of duration and nrep)
@@ -53,7 +57,7 @@ params.time_halfbandwidth=1;
 params.num_seq = 2*params.time_halfbandwidth-1;
 params.Fs_PSD=1/params.DELAYbinwidth;
 
-for condVar=1:length(conditionStruct)
+parfor condVar=1:length(conditionStruct)
     fprintf('Start - %d\n', condVar);
 
     CF_Hz=conditionStruct(condVar).CF_kHz*1e3;
@@ -120,8 +124,8 @@ for condVar=1:length(conditionStruct)
     FFTadjN(1:CF_indexN)=FFTtempN(1:CF_indexN);
     FFTadjN((length(FFTtempN)-CF_indexN+1):end)=FFTtempN((length(FFTtempN)-CF_indexN+1):end); %keep negative freqs
     N_PSDenv=abs(FFTadjN);
-    conditionStruct(condVar).N_PSDenv=N_PSDenv;
-    conditionStruct(condVar).N_freqVEC=N_freqVEC;
+%     conditionStruct(condVar).N_PSDenv=N_PSDenv;
+%     conditionStruct(condVar).N_freqVEC=N_freqVEC;
     
 %%    
     [uR_ACF_plus, ~]=xcorr(meanrate_unad_plus, 'unbiased');
@@ -153,11 +157,12 @@ for condVar=1:length(conditionStruct)
     uR_FFTadj(1:CF_indexuR)=FFTtempuR(1:CF_indexuR);
     uR_FFTadj((length(FFTtempuR)-CF_indexuR+1):end)=FFTtempuR((length(FFTtempuR)-CF_indexuR+1):end); %keep negative freqs
     uR_PSDenv=abs(uR_FFTadj);
-    conditionStruct(condVar).uR_PSDenv=uR_PSDenv;
-    conditionStruct(condVar).uR_freqVEC=uR_freqVEC;
+%     conditionStruct(condVar).uR_PSDenv=uR_PSDenv;
+%     conditionStruct(condVar).uR_freqVEC=uR_freqVEC;
     
-    save([OUTDirIter 'conditionData_iter_' num2str(condVar) '.mat'], 'uR_PSDenv', 'uR_PSDenv', 'N_freqVEC', 'N_PSDenv');
+    dummyFunforSaving([OUTDirIter 'conditionData_iter_' num2str(condVar) '.mat'], uR_freqVEC, uR_PSDenv, N_freqVEC, N_PSDenv, CF_Hz, nReps, SRtype, window, stimFname);
 end
 
-save([OUTDir 'conditionData.mat'], 'conditionStruct', 'stimFileNames', 'AN', 'params');
-analyze_saved_conditionStruct_nRep_SUMCORpsd(conditionStruct, stimFileNames, OUTDir);
+% save([OUTDir 'conditionData.mat'], 'conditionStruct', 'stimFileNames', 'AN', 'params');
+% analyze_saved_conditionStruct_nRep_SUMCORpsd(conditionStruct, stimFileNames, OUTDir);
+run_analyze_saved_conditionStruct_nRep_SUMCORpsd;
